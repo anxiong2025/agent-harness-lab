@@ -38,6 +38,10 @@ def derive_messages(events: list[dict[str, str]]) -> list[dict[str, str]]:
     ]
 
 
+def should_crash_after_request_started() -> bool:
+    return os.environ.get("HARNESS_LAB_CRASH_AFTER_REQUEST_STARTED") == "1"
+
+
 def call_model(messages: list[dict[str, str]]) -> str:
     client = OpenAI(
         api_key=os.environ["DEEPSEEK_API_KEY"],
@@ -71,6 +75,9 @@ while True:
             "message_count": str(len(messages)),
         }
     )
+    if should_crash_after_request_started():
+        print("模拟崩溃：模型请求开始事件已保存。", flush=True)
+        os._exit(1)
     answer = call_model(messages)
     append_event({"kind": "message", "role": "assistant", "content": answer})
     print(f"模型：{answer}")
