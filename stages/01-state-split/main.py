@@ -8,7 +8,8 @@ from openai import OpenAI
 
 load_dotenv()
 
-STATE_FILE = Path(__file__).with_name("messages.json")
+DEFAULT_STATE_FILE = Path(__file__).with_name("messages.json")
+STATE_FILE = Path(os.environ.get("HARNESS_LAB_STATE_FILE", DEFAULT_STATE_FILE))
 SYSTEM_MESSAGE = {
     "role": "system",
     "content": "你是一个简洁的助手，每次回答不超过三句话。",
@@ -26,6 +27,10 @@ def save_messages(messages: list[dict[str, str]]) -> None:
         json.dumps(messages, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+
+
+def should_crash_after_response() -> bool:
+    return os.environ.get("HARNESS_LAB_CRASH_AFTER_RESPONSE") == "1"
 
 
 def call_model(messages: list[dict[str, str]]) -> str:
@@ -54,6 +59,10 @@ while True:
     save_messages(messages)
 
     answer = call_model(messages)
+    print(f"模型：{answer}", flush=True)
+    if should_crash_after_response():
+        print("模拟崩溃：回答尚未保存到快照。", flush=True)
+        os._exit(1)
+
     messages.append({"role": "assistant", "content": answer})
     save_messages(messages)
-    print(f"模型：{answer}")
