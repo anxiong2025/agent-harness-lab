@@ -63,6 +63,14 @@ while True:
         continue
 
     append_event({"kind": "message", "role": "user", "content": message})
-    answer = call_model(derive_messages(read_events()))
+    messages = derive_messages(read_events())
+    append_event(
+        {
+            "kind": "model_request_started",
+            "model": os.environ.get("LOOPBASE_MODEL", "deepseek-chat"),
+            "message_count": str(len(messages)),
+        }
+    )
+    answer = call_model(messages)
     append_event({"kind": "message", "role": "assistant", "content": answer})
     print(f"模型：{answer}")
