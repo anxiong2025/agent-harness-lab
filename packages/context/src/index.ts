@@ -57,6 +57,7 @@ export type ContextBlock = {
   name: string
   source: string
   cacheStable: boolean
+  compactable: boolean
   messages: ModelMessage[]
 }
 
@@ -78,6 +79,7 @@ export class ContextBlockBuilder {
       name: 'system',
       source: 'agent_scope',
       cacheStable: true,
+      compactable: false,
       messages: [systemMessage],
     }]
     if (summary !== null) {
@@ -85,6 +87,7 @@ export class ContextBlockBuilder {
         name: 'summary',
         source: 'context_summary',
         cacheStable: true,
+        compactable: true,
         messages: [{ role: 'system', content: `以下是较早对话的摘要：\n${summary}` }],
       })
     }
@@ -93,12 +96,14 @@ export class ContextBlockBuilder {
         name: 'runtime_time',
         source: 'local_clock',
         cacheStable: false,
+        compactable: false,
         messages: [{ role: 'system', content: `当前运行 Harness 的电脑本地时间是 ${currentTime}。涉及当前日期或时间时，以此为准。` }],
       },
       {
         name: 'recent_history',
         source: 'event_log',
         cacheStable: false,
+        compactable: true,
         messages: conversation.slice(-this.recentHistoryLimit),
       },
     )

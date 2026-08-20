@@ -24,7 +24,9 @@ export class SessionLog {
   deriveMessages(events = this.read()): ModelMessage[] {
     return events.flatMap((event) => {
       if (event.kind === 'message') return [{ role: event.role, content: event.content }]
-      if (event.kind === 'model_response') return [{ role: 'assistant' as const, content: event.response.content }]
+      if (event.kind === 'model_response' && event.response.content !== null) {
+        return [{ role: 'assistant' as const, content: event.response.content }]
+      }
       return []
     })
   }

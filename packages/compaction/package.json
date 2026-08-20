@@ -1,0 +1,11 @@
+{
+  "name": "@agent-harness/compaction",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@agent-harness/context": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

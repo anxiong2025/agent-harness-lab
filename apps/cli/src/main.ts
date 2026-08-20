@@ -36,6 +36,7 @@ while (true) {
     requestId: randomUUID(),
     model: process.env.LOOPBASE_MODEL ?? 'deepseek-chat',
     messages: log.deriveMessages(),
+    tools: [],
   }
   log.append({ kind: 'model_request', request })
   const response = await provider.complete(request)

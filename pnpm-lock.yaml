@@ -35,6 +35,12 @@ importers:
 
   packages/capabilities: {}
 
+  packages/compaction:
+    dependencies:
+      '@agent-harness/context':
+        specifier: workspace:*
+        version: link:../context
+
   packages/context:
     dependencies:
       '@agent-harness/core':
@@ -64,6 +70,12 @@ importers:
         version: link:../core
 
   packages/subagent:
+    dependencies:
+      '@agent-harness/core':
+        specifier: workspace:*
+        version: link:../core
+
+  packages/tools:
     dependencies:
       '@agent-harness/core':
         specifier: workspace:*

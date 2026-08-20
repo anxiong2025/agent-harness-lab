@@ -24,11 +24,13 @@ export type ModelRequest = {
   requestId: string
   model: string
   messages: ModelMessage[]
+  tools: ToolSchema[]
 }
 
 export type ModelResponse = {
   requestId: string
-  content: string
+  content: string | null
+  toolCalls: ToolCall[]
 }
 
 export type SessionEvent =
