@@ -1,0 +1,11 @@
+{
+  "name": "@agent-harness/session",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@agent-harness/core": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/session-log.ts"
+  }
+}
