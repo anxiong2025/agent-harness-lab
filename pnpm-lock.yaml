@@ -20,18 +20,60 @@ importers:
 
   apps/cli:
     dependencies:
+      '@agent-harness/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
+      '@agent-harness/capabilities':
+        specifier: workspace:*
+        version: link:../../packages/capabilities
+      '@agent-harness/compaction':
+        specifier: workspace:*
+        version: link:../../packages/compaction
       '@agent-harness/core':
         specifier: workspace:*
         version: link:../../packages/core
       '@agent-harness/llm':
         specifier: workspace:*
         version: link:../../packages/llm
+      '@agent-harness/scope':
+        specifier: workspace:*
+        version: link:../../packages/scope
       '@agent-harness/session':
         specifier: workspace:*
         version: link:../../packages/session
+      '@agent-harness/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
       dotenv:
         specifier: ^17.2.3
         version: 17.4.2
+
+  packages/agent:
+    dependencies:
+      '@agent-harness/capabilities':
+        specifier: workspace:*
+        version: link:../capabilities
+      '@agent-harness/compaction':
+        specifier: workspace:*
+        version: link:../compaction
+      '@agent-harness/context':
+        specifier: workspace:*
+        version: link:../context
+      '@agent-harness/core':
+        specifier: workspace:*
+        version: link:../core
+      '@agent-harness/llm':
+        specifier: workspace:*
+        version: link:../llm
+      '@agent-harness/scope':
+        specifier: workspace:*
+        version: link:../scope
+      '@agent-harness/session':
+        specifier: workspace:*
+        version: link:../session
+      '@agent-harness/tools':
+        specifier: workspace:*
+        version: link:../tools
 
   packages/capabilities: {}
 
@@ -60,6 +102,8 @@ importers:
       '@agent-harness/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/runtime: {}
 
   packages/scope: {}
 

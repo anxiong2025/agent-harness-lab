@@ -69,3 +69,23 @@ export class BudgetPolicy {
     return { kind: 'compact', measurement, plan: this.compaction.plan(measurement, blocks) }
   }
 }
+
+export interface CompactionProvider {
+  compact(blocks: ContextBlock[], plan: CompactionPlan): Promise<ContextBlock[]>
+}
+
+/** Deterministic provider used until an LLM summarization provider is composed. */
+export class BasicCompactionProvider implements CompactionProvider {
+  async compact(blocks: ContextBlock[], plan: CompactionPlan): Promise<ContextBlock[]> {
+    if (plan.candidateBlocks.length === 0) throw new Error('context pressure has no compactable block')
+    const recentMessages = blocks.find((block) => block.name === 'recent_history')?.messages ?? []
+    const latestUser = [...recentMessages].reverse().find((message) => message.role === 'user')
+    return blocks.flatMap((block) => {
+      if (block.name === 'summary') return [{ ...block, messages: [{ role: 'system', content: '较早对话已压缩；请以最近消息为准。' }] }]
+      if (block.name === 'recent_history') {
+        return latestUser ? [{ ...block, messages: [latestUser] }] : []
+      }
+      return [block]
+    })
+  }
+}

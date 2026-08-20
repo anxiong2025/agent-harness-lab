@@ -14,9 +14,36 @@ export class DeepSeekProvider implements LlmProvider {
       headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: request.model,
-          messages: request.messages,
+          messages: request.messages.map((message) => {
+            if ('toolCalls' in message) {
+              return {
+                role: 'assistant',
+                content: message.content,
+                tool_calls: message.toolCalls.map((call) => ({
+                  id: call.id,
+                  type: 'function',
+                  function: { name: call.name, arguments: JSON.stringify(call.arguments) },
+                })),
+              }
+            }
+            if ('toolCallId' in message) {
+              return { role: 'tool', tool_call_id: message.toolCallId, content: message.content }
+            }
+            return message
+          }),
           ...(request.tools.length > 0 ? {
-            tools: request.tools.map((tool) => ({ type: 'function', function: tool })),
+            tools: request.tools.map((tool) => ({
+              type: 'function',
+              function: {
+                name: tool.name,
+                description: tool.description,
+                parameters: {
+                  type: 'object',
+                  properties: tool.parameters,
+                  additionalProperties: false,
+                },
+              },
+            })),
           } : {}),
         }),
     })

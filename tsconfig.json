@@ -18,7 +18,9 @@
       "@agent-harness/subagent": ["packages/subagent/src/handoff.ts"],
       "@agent-harness/context": ["packages/context/src/index.ts"],
       "@agent-harness/compaction": ["packages/compaction/src/index.ts"],
-      "@agent-harness/tools": ["packages/tools/src/registry.ts"]
+      "@agent-harness/tools": ["packages/tools/src/registry.ts"],
+      "@agent-harness/runtime": ["packages/runtime/src/plugin-host.ts"],
+      "@agent-harness/agent": ["packages/agent/src/agent-loop.ts"]
     },
     "noEmit": true
   },

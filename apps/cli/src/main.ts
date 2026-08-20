@@ -1,11 +1,13 @@
-import { randomUUID } from 'node:crypto'
 import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 import { config } from 'dotenv'
 
-import type { ModelRequest } from '@agent-harness/core'
+import { AgentLoop } from '@agent-harness/agent'
+import { LocalClock } from '@agent-harness/capabilities'
 import { DeepSeekProvider, defaultMessages } from '@agent-harness/llm'
 import { SessionLog } from '@agent-harness/session'
+import { ScopeRegistry } from '@agent-harness/scope'
+import { ToolRegistry } from '@agent-harness/tools'
 
 config({ path: new URL('../../../.env', import.meta.url) })
 
@@ -17,6 +19,21 @@ if (log.read().length === 0) {
 }
 
 const provider = new DeepSeekProvider()
+const clock = new LocalClock()
+const tools = new ToolRegistry()
+tools.register({
+  name: 'get_local_time',
+  description: 'Read the local date and time of the computer running the harness.',
+  parameters: {},
+  async execute() { return clock.currentTime() },
+})
+const scopes = new ScopeRegistry()
+scopes.register({
+  agentId: 'concise',
+  systemPrompt: defaultMessages()[0]?.content ?? '你是一个简洁的助手。',
+  capabilities: new Set(['get_local_time']),
+})
+const agent = new AgentLoop(log, provider, tools, scopes, clock)
 const terminal = createInterface({ input, output })
 console.log(`已读取 ${log.read().length} 条事件。输入 /exit 退出。`)
 
@@ -31,17 +48,8 @@ while (true) {
   if (content === '/exit') break
   if (!content) continue
 
-  log.append({ kind: 'message', role: 'user', content })
-  const request: ModelRequest = {
-    requestId: randomUUID(),
-    model: process.env.LOOPBASE_MODEL ?? 'deepseek-chat',
-    messages: log.deriveMessages(),
-    tools: [],
-  }
-  log.append({ kind: 'model_request', request })
-  const response = await provider.complete(request)
-  log.append({ kind: 'model_response', response })
-  console.log(`模型：${response.content}`)
+  const answer = await agent.run(content, { contextWindowTokens: 800, reservedOutputTokens: 400 })
+  console.log(`模型：${answer}`)
 }
 
 terminal.close()

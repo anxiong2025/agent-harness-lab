@@ -1,19 +1,18 @@
 {
-  "name": "@agent-harness/cli",
+  "name": "@agent-harness/agent",
   "private": true,
   "type": "module",
-  "scripts": {
-    "start": "tsx src/main.ts"
-  },
   "dependencies": {
-    "@agent-harness/agent": "workspace:*",
     "@agent-harness/capabilities": "workspace:*",
     "@agent-harness/compaction": "workspace:*",
+    "@agent-harness/context": "workspace:*",
     "@agent-harness/core": "workspace:*",
     "@agent-harness/llm": "workspace:*",
-    "@agent-harness/session": "workspace:*",
     "@agent-harness/scope": "workspace:*",
-    "@agent-harness/tools": "workspace:*",
-    "dotenv": "^17.2.3"
+    "@agent-harness/session": "workspace:*",
+    "@agent-harness/tools": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/agent-loop.ts"
   }
 }

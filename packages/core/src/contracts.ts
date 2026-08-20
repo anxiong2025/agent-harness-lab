@@ -20,10 +20,15 @@ export type ModelMessage = {
   content: string
 }
 
+export type ModelChatMessage =
+  | ModelMessage
+  | { role: 'assistant'; content: string | null; toolCalls: ToolCall[] }
+  | { role: 'tool'; toolCallId: string; content: string }
+
 export type ModelRequest = {
   requestId: string
   model: string
-  messages: ModelMessage[]
+  messages: ModelChatMessage[]
   tools: ToolSchema[]
 }
 

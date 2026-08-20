@@ -1,0 +1,8 @@
+{
+  "name": "@agent-harness/runtime",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/plugin-host.ts"
+  }
+}
