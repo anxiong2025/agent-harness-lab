@@ -29,7 +29,7 @@ export class BudgetPolicy extends Service {
     return {
       kind: 'compact',
       measurement,
-      plan: this.ctx.labCompaction.plan(measurement),
+      plan: this.ctx.labCompaction.plan(measurement, blocks),
     }
   }
 }

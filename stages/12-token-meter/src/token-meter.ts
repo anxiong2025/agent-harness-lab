@@ -7,6 +7,7 @@ export type ModelMessage = {
 
 export type ContextBlock = {
   name: string
+  compactable: boolean
   messages: ModelMessage[]
 }
 

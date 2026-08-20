@@ -18,18 +18,22 @@ export class ContextBlocks extends Service {
     return [
       {
         name: 'system',
+        compactable: false,
         messages: [{ role: 'system', content: '你是一个简洁的助手。' }],
       },
       {
         name: 'summary',
+        compactable: true,
         messages: [{ role: 'system', content: '用户叫安德鲁，偏好徒步和摄影。' }],
       },
       {
         name: 'runtime_time',
+        compactable: false,
         messages: [{ role: 'system', content: '当前时间是 2026-08-20T01:30:00-07:00。' }],
       },
       {
         name: 'recent_history',
+        compactable: true,
         messages: [
           { role: 'user', content: '我计划十月去日本旅行，预算两万元。' },
           { role: 'assistant', content: '建议优先京都赏枫，搭配东京或北海道。' },
