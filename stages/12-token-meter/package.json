@@ -1,0 +1,11 @@
+{
+  "name": "token-meter-lab",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "demo": "tsx src/main.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}
