@@ -1,5 +1,7 @@
 import { Service, type Context } from '../../../../deepseek-harness/vendor/cordis/lib/index.js'
 
+import type { ModelMessage } from './session.ts'
+
 declare module '../../../../deepseek-harness/vendor/cordis/lib/index.js' {
   interface Context {
     labContext: RequestContext
@@ -8,7 +10,7 @@ declare module '../../../../deepseek-harness/vendor/cordis/lib/index.js' {
 
 /** Context service that consumes the clock instead of importing its provider. */
 export class RequestContext extends Service {
-  static inject = ['labClock']
+  static inject = ['labClock', 'labSession']
 
   constructor(ctx: Context) {
     super(ctx, 'labContext')
@@ -18,14 +20,24 @@ export class RequestContext extends Service {
     })
   }
 
-  build(userMessage: string): Array<{ role: string; content: string }> {
-    return [
-      { role: 'system', content: '你是一个简洁的助手。' },
+  build(): ModelMessage[] {
+    const messages: ModelMessage[] = [
       {
         role: 'system',
         content: `当前运行 Harness 的时间是 ${this.ctx.labClock.currentTime()}。`,
       },
-      { role: 'user', content: userMessage },
     ]
+    for (const event of this.ctx.labSession.events) {
+      if (event.kind === 'agent_scope') {
+        messages.unshift({ role: 'system', content: event.systemPrompt })
+      }
+      if (event.kind === 'message') {
+        messages.push({ role: 'user', content: event.content })
+      }
+      if (event.kind === 'model_response') {
+        messages.push({ role: 'assistant', content: event.content })
+      }
+    }
+    return messages
   }
 }
