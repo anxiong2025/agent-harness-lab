@@ -1,0 +1,14 @@
+{
+  "name": "@agent-harness/cli",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@agent-harness/core": "workspace:*",
+    "@agent-harness/llm": "workspace:*",
+    "@agent-harness/session": "workspace:*",
+    "dotenv": "^17.2.3"
+  }
+}

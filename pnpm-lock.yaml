@@ -18,7 +18,28 @@ importers:
         specifier: ^5.9.2
         version: 5.9.3
 
+  apps/cli:
+    dependencies:
+      '@agent-harness/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@agent-harness/llm':
+        specifier: workspace:*
+        version: link:../../packages/llm
+      '@agent-harness/session':
+        specifier: workspace:*
+        version: link:../../packages/session
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.4.2
+
   packages/core: {}
+
+  packages/llm:
+    dependencies:
+      '@agent-harness/core':
+        specifier: workspace:*
+        version: link:../core
 
   packages/session:
     dependencies:
@@ -187,6 +208,10 @@ packages:
   '@types/node@22.20.1':
     resolution: {integrity: sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==}
 
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
+    engines: {node: '>=12'}
+
   esbuild@0.28.2:
     resolution: {integrity: sha512-HKVLS8dvII+xoKW9kmqxbRKrnWEXfJJr/FZhhJmiqIB0e053QNYFqOBouTMO/k5sID4MvCiUCvv8b9M4h32wIA==}
     engines: {node: '>=18'}
@@ -293,6 +318,8 @@ snapshots:
   '@types/node@22.20.1':
     dependencies:
       undici-types: 6.21.0
+
+  dotenv@17.4.2: {}
 
   esbuild@0.28.2:
     optionalDependencies:

@@ -1,7 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
-import type { SessionEvent } from '@agent-harness/core'
+import type { ModelMessage, ModelRequest, SessionEvent } from '@agent-harness/core'
 
 /** Durable append-only event store used to reconstruct a session surface. */
 export class SessionLog {
@@ -19,5 +19,25 @@ export class SessionLog {
       .split('\n')
       .filter((line) => line.length > 0)
       .map((line) => JSON.parse(line) as SessionEvent)
+  }
+
+  deriveMessages(events = this.read()): ModelMessage[] {
+    return events.flatMap((event) => {
+      if (event.kind === 'message') return [{ role: event.role, content: event.content }]
+      if (event.kind === 'model_response') return [{ role: 'assistant' as const, content: event.response.content }]
+      return []
+    })
+  }
+
+  pendingRequests(events = this.read()): ModelRequest[] {
+    const requests = new Map<string, ModelRequest>()
+    const responses = new Set<string>()
+    for (const event of events) {
+      if (event.kind === 'model_request') requests.set(event.request.requestId, event.request)
+      if (event.kind === 'model_response') responses.add(event.response.requestId)
+    }
+    return [...requests.entries()]
+      .filter(([requestId]) => !responses.has(requestId))
+      .map(([, request]) => request)
   }
 }

@@ -15,10 +15,26 @@ export type ToolSchema = {
   parameters: JsonObject
 }
 
+export type ModelMessage = {
+  role: 'system' | 'user' | 'assistant'
+  content: string
+}
+
+export type ModelRequest = {
+  requestId: string
+  model: string
+  messages: ModelMessage[]
+}
+
+export type ModelResponse = {
+  requestId: string
+  content: string
+}
+
 export type SessionEvent =
   | { kind: 'message'; role: 'system' | 'user' | 'assistant'; content: string }
-  | { kind: 'model_request'; requestId: string; messages: JsonValue[]; tools: ToolSchema[] }
-  | { kind: 'model_response'; requestId: string; content: string | null; toolCalls: ToolCall[] }
+  | { kind: 'model_request'; request: ModelRequest }
+  | { kind: 'model_response'; response: ModelResponse }
   | { kind: 'tool_call'; requestId: string; callId: string; tool: ToolCall }
   | { kind: 'tool_result'; requestId: string; callId: string; content: string }
 

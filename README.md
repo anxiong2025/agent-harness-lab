@@ -6,6 +6,7 @@ This repository is now organized as a production-oriented workspace. The earlier
 packages/
   core/       durable event and model/tool contracts
   session/    append-only session log and reconstruction
+  llm/        model provider seam and DeepSeek provider
   context/    request-context assembly
   compaction/ token budget and surface replacement
   llm/        model provider seam

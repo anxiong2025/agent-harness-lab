@@ -10,7 +10,8 @@
     "baseUrl": ".",
     "paths": {
       "@agent-harness/core": ["packages/core/src/contracts.ts"],
-      "@agent-harness/session": ["packages/session/src/session-log.ts"]
+      "@agent-harness/session": ["packages/session/src/session-log.ts"],
+      "@agent-harness/llm": ["packages/llm/src/deepseek.ts"]
     },
     "noEmit": true
   },
