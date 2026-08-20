@@ -3,6 +3,9 @@ import { stdin as input, stdout as output } from 'node:process'
 import { config } from 'dotenv'
 
 import { DefaultAgentLoop } from '@agent-harness/agent'
+import type { AgentLoopDependencies } from '@agent-harness/agent/ports'
+import { BasicCompactionProvider, BudgetPolicy, CompactionEngine, TokenMeter } from '@agent-harness/compaction'
+import { ContextBlockBuilder } from '@agent-harness/context'
 import { AgentRegistry } from '@agent-harness/agent/registry'
 import { LocalClock } from '@agent-harness/capabilities'
 import { DeepSeekProvider, defaultMessages } from '@agent-harness/llm'
@@ -35,9 +38,21 @@ scopes.register({
   capabilities: new Set(['get_local_time']),
 })
 const agents = new AgentRegistry()
+const contextBlocks = new ContextBlockBuilder(12)
+const dependencies: AgentLoopDependencies = {
+  session: log,
+  llm: provider,
+  tools,
+  scopes,
+  clock,
+  context: contextBlocks,
+  budget: new BudgetPolicy(new TokenMeter(), new CompactionEngine()),
+  compaction: new BasicCompactionProvider(),
+  model: process.env.LOOPBASE_MODEL ?? 'deepseek-chat',
+}
 agents.register({
   agentId: 'concise',
-  create: () => new DefaultAgentLoop(log, provider, tools, scopes, clock),
+  create: () => new DefaultAgentLoop(dependencies),
 })
 const agent = agents.create('concise')
 const terminal = createInterface({ input, output })

@@ -3,18 +3,15 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@agent-harness/capabilities": "workspace:*",
     "@agent-harness/compaction": "workspace:*",
     "@agent-harness/context": "workspace:*",
     "@agent-harness/core": "workspace:*",
-    "@agent-harness/llm": "workspace:*",
-    "@agent-harness/scope": "workspace:*",
-    "@agent-harness/session": "workspace:*",
-    "@agent-harness/tools": "workspace:*"
+    "@agent-harness/scope": "workspace:*"
   },
   "exports": {
     ".": "./src/agent-loop.ts",
     "./contracts": "./src/contracts.ts",
-    "./registry": "./src/registry.ts"
+    "./registry": "./src/registry.ts",
+    "./ports": "./src/ports.ts"
   }
 }

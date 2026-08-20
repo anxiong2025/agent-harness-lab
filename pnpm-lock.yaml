@@ -50,9 +50,6 @@ importers:
 
   packages/agent:
     dependencies:
-      '@agent-harness/capabilities':
-        specifier: workspace:*
-        version: link:../capabilities
       '@agent-harness/compaction':
         specifier: workspace:*
         version: link:../compaction
@@ -62,18 +59,9 @@ importers:
       '@agent-harness/core':
         specifier: workspace:*
         version: link:../core
-      '@agent-harness/llm':
-        specifier: workspace:*
-        version: link:../llm
       '@agent-harness/scope':
         specifier: workspace:*
         version: link:../scope
-      '@agent-harness/session':
-        specifier: workspace:*
-        version: link:../session
-      '@agent-harness/tools':
-        specifier: workspace:*
-        version: link:../tools
 
   packages/capabilities: {}
 

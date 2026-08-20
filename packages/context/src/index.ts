@@ -109,6 +109,11 @@ export class ContextBlockBuilder {
     )
     return blocks
   }
+
+  /** Flatten named blocks into the ordered model-visible message list. */
+  flatten(blocks: ContextBlock[]): ModelMessage[] {
+    return flattenBlocks(blocks)
+  }
 }
 
 export function flattenBlocks(blocks: ContextBlock[]): ModelMessage[] {
