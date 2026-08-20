@@ -13,6 +13,8 @@
     "@agent-harness/tools": "workspace:*"
   },
   "exports": {
-    ".": "./src/agent-loop.ts"
+    ".": "./src/agent-loop.ts",
+    "./contracts": "./src/contracts.ts",
+    "./registry": "./src/registry.ts"
   }
 }

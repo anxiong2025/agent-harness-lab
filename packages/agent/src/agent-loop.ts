@@ -8,9 +8,10 @@ import { DeepSeekProvider } from '@agent-harness/llm'
 import { ScopeRegistry } from '@agent-harness/scope'
 import { SessionLog } from '@agent-harness/session'
 import { ToolRegistry } from '@agent-harness/tools'
+import type { AgentDriver, AgentRunInput } from './contracts.ts'
 
 /** The integrated request path assembled from capability seams. */
-export class AgentLoop {
+export class DefaultAgentLoop implements AgentDriver {
   constructor(
     private readonly session: SessionLog,
     private readonly llm: DeepSeekProvider,
@@ -23,7 +24,7 @@ export class AgentLoop {
     private readonly compaction = new BasicCompactionProvider(),
   ) {}
 
-  async run(prompt: string, tokenBudget: TokenBudget, agentId = 'concise'): Promise<string> {
+  async run({ prompt, budget: tokenBudget, agentId }: AgentRunInput): Promise<string> {
     const scope = this.scopes.resolve(agentId)
     this.session.append({ kind: 'agent_scope', agentId: scope.agentId, systemPrompt: scope.systemPrompt })
     this.session.append({ kind: 'message', role: 'user', content: prompt })
@@ -65,3 +66,6 @@ export class AgentLoop {
     return finalResponse.content ?? ''
   }
 }
+
+/** Backwards-compatible name for the default implementation inside this lab. */
+export { DefaultAgentLoop as AgentLoop }

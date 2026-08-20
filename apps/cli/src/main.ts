@@ -2,7 +2,8 @@ import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
 import { config } from 'dotenv'
 
-import { AgentLoop } from '@agent-harness/agent'
+import { DefaultAgentLoop } from '@agent-harness/agent'
+import { AgentRegistry } from '@agent-harness/agent/registry'
 import { LocalClock } from '@agent-harness/capabilities'
 import { DeepSeekProvider, defaultMessages } from '@agent-harness/llm'
 import { SessionLog } from '@agent-harness/session'
@@ -33,7 +34,12 @@ scopes.register({
   systemPrompt: defaultMessages()[0]?.content ?? '你是一个简洁的助手。',
   capabilities: new Set(['get_local_time']),
 })
-const agent = new AgentLoop(log, provider, tools, scopes, clock)
+const agents = new AgentRegistry()
+agents.register({
+  agentId: 'concise',
+  create: () => new DefaultAgentLoop(log, provider, tools, scopes, clock),
+})
+const agent = agents.create('concise')
 const terminal = createInterface({ input, output })
 console.log(`已读取 ${log.read().length} 条事件。输入 /exit 退出。`)
 
@@ -48,7 +54,11 @@ while (true) {
   if (content === '/exit') break
   if (!content) continue
 
-  const answer = await agent.run(content, { contextWindowTokens: 800, reservedOutputTokens: 400 })
+  const answer = await agent.run({
+    prompt: content,
+    agentId: 'concise',
+    budget: { contextWindowTokens: 800, reservedOutputTokens: 400 },
+  })
   console.log(`模型：${answer}`)
 }
 
