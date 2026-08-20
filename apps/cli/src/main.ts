@@ -7,7 +7,7 @@ import type { AgentLoopDependencies } from '@agent-harness/agent/ports'
 import { BasicCompactionProvider, BudgetPolicy, CompactionEngine, TokenMeter } from '@agent-harness/compaction'
 import { ContextBlockBuilder } from '@agent-harness/context'
 import { AgentRegistry } from '@agent-harness/agent/registry'
-import { LocalClock } from '@agent-harness/capabilities'
+import { createHongKongWeatherTool, createLocalTimeTool, LocalClock } from '@agent-harness/capabilities'
 import { DeepSeekProvider, defaultMessages } from '@agent-harness/llm'
 import { SessionLog } from '@agent-harness/session'
 import { ScopeRegistry } from '@agent-harness/scope'
@@ -25,17 +25,13 @@ if (log.read().length === 0) {
 const provider = new DeepSeekProvider()
 const clock = new LocalClock()
 const tools = new ToolRegistry()
-tools.register({
-  name: 'get_local_time',
-  description: 'Read the local date and time of the computer running the harness.',
-  parameters: {},
-  async execute() { return clock.currentTime() },
-})
+tools.register(createLocalTimeTool(clock))
+tools.register(createHongKongWeatherTool())
 const scopes = new ScopeRegistry()
 scopes.register({
   agentId: 'concise',
   systemPrompt: defaultMessages()[0]?.content ?? '你是一个简洁的助手。',
-  capabilities: new Set(['get_local_time']),
+  capabilities: new Set(['get_local_time', 'get_hong_kong_weather']),
 })
 const agents = new AgentRegistry()
 const contextBlocks = new ContextBlockBuilder(12)

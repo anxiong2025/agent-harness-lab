@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/local-clock.ts"
+    ".": "./src/index.ts"
   }
 }
