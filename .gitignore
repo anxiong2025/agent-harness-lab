@@ -5,3 +5,4 @@ __pycache__/
 stages/**/messages.json
 stages/**/events.jsonl
 stages/**/*.events.jsonl
+stages/**/node_modules/
