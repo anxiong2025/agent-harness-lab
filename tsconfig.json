@@ -15,7 +15,8 @@
       "@agent-harness/capabilities": ["packages/capabilities/src/local-clock.ts"],
       "@agent-harness/recovery": ["packages/recovery/src/pending-requests.ts"],
       "@agent-harness/scope": ["packages/scope/src/agent-scope.ts"],
-      "@agent-harness/subagent": ["packages/subagent/src/handoff.ts"]
+      "@agent-harness/subagent": ["packages/subagent/src/handoff.ts"],
+      "@agent-harness/context": ["packages/context/src/index.ts"]
     },
     "noEmit": true
   },

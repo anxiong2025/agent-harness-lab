@@ -35,6 +35,12 @@ importers:
 
   packages/capabilities: {}
 
+  packages/context:
+    dependencies:
+      '@agent-harness/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/core: {}
 
   packages/llm:
