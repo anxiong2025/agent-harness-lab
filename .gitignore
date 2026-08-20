@@ -1,11 +1,4 @@
 .env
-.venv/
-__pycache__/
-*.py[cod]
-stages/**/messages.json
-stages/**/events.jsonl
-stages/**/*.events.jsonl
 **/*.events.jsonl
-stages/**/node_modules/
 node_modules/
 **/node_modules/
