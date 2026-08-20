@@ -24,8 +24,8 @@ export interface LlmPort {
 
 /** Tool capability exposed to one agent scope. */
 export interface ToolPort {
-  schemas(): ToolSchema[]
-  execute(name: string, arguments_: ToolCall['arguments']): Promise<string>
+  schemas(allowedNames: ReadonlySet<string>): ToolSchema[]
+  execute(name: string, arguments_: ToolCall['arguments'], allowedNames: ReadonlySet<string>): Promise<string>
 }
 
 /** Agent-scope resolver used to select prompts and capabilities. */

@@ -26,7 +26,7 @@ export class DefaultAgentLoop implements AgentDriver {
       requestId: randomUUID(),
       model,
       messages,
-      tools: tools.schemas(),
+      tools: tools.schemas(scope.capabilities),
     }
     session.append({ kind: 'model_request', request })
     const response = await llm.complete(request)
@@ -40,7 +40,7 @@ export class DefaultAgentLoop implements AgentDriver {
     }]
     for (const call of response.toolCalls) {
       session.append({ kind: 'tool_call', requestId: request.requestId, callId: call.id, tool: call })
-      const content = await tools.execute(call.name, call.arguments)
+      const content = await tools.execute(call.name, call.arguments, scope.capabilities)
       session.append({ kind: 'tool_result', requestId: request.requestId, callId: call.id, content })
       toolMessages.push({ role: 'tool', toolCallId: call.id, content })
     }

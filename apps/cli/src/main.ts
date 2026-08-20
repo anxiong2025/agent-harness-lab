@@ -4,14 +4,15 @@ import { config } from 'dotenv'
 
 import { DefaultAgentLoop } from '@agent-harness/agent'
 import type { AgentLoopDependencies } from '@agent-harness/agent/ports'
+import { AgentRegistry } from '@agent-harness/agent/registry'
 import { BasicCompactionProvider, BudgetPolicy, CompactionEngine, TokenMeter } from '@agent-harness/compaction'
 import { ContextBlockBuilder } from '@agent-harness/context'
-import { AgentRegistry } from '@agent-harness/agent/registry'
-import { createHongKongWeatherTool, createLocalTimeTool, LocalClock } from '@agent-harness/capabilities'
+import { createHongKongWeatherTool, createLocalTimeTool, createReadFileTool, LocalClock } from '@agent-harness/capabilities'
 import { DeepSeekProvider, defaultMessages } from '@agent-harness/llm'
 import { SessionLog } from '@agent-harness/session'
 import { ScopeRegistry } from '@agent-harness/scope'
 import { ToolRegistry } from '@agent-harness/tools'
+import { registerCliAgentScopes } from './agents.js'
 
 config({ path: new URL('../../../.env', import.meta.url) })
 
@@ -27,12 +28,9 @@ const clock = new LocalClock()
 const tools = new ToolRegistry()
 tools.register(createLocalTimeTool(clock))
 tools.register(createHongKongWeatherTool())
+tools.register(createReadFileTool())
 const scopes = new ScopeRegistry()
-scopes.register({
-  agentId: 'concise',
-  systemPrompt: defaultMessages()[0]?.content ?? '你是一个简洁的助手。',
-  capabilities: new Set(['get_local_time', 'get_hong_kong_weather']),
-})
+registerCliAgentScopes(scopes)
 const agents = new AgentRegistry()
 const contextBlocks = new ContextBlockBuilder(12)
 const dependencies: AgentLoopDependencies = {
@@ -50,9 +48,14 @@ agents.register({
   agentId: 'concise',
   create: () => new DefaultAgentLoop(dependencies),
 })
-const agent = agents.create('concise')
+agents.register({
+  agentId: 'coding',
+  create: () => new DefaultAgentLoop(dependencies),
+})
+let activeAgentId = 'concise'
+let agent = agents.create(activeAgentId)
 const terminal = createInterface({ input, output })
-console.log(`已读取 ${log.read().length} 条事件。输入 /exit 退出。`)
+console.log(`已读取 ${log.read().length} 条事件。当前 Agent：${activeAgentId}。输入 /agent coding 或 /agent concise 切换。`)
 
 while (true) {
   let content: string
@@ -65,9 +68,21 @@ while (true) {
   if (content === '/exit') break
   if (!content) continue
 
+  if (content.startsWith('/agent ')) {
+    const requestedAgentId = content.slice('/agent '.length).trim()
+    try {
+      agent = agents.create(requestedAgentId)
+      activeAgentId = requestedAgentId
+      console.log(`已切换到 Agent：${activeAgentId}`)
+    } catch (error) {
+      console.log(error instanceof Error ? error.message : String(error))
+    }
+    continue
+  }
+
   const answer = await agent.run({
     prompt: content,
-    agentId: 'concise',
+    agentId: activeAgentId,
     budget: { contextWindowTokens: 800, reservedOutputTokens: 400 },
   })
   console.log(`模型：${answer}`)

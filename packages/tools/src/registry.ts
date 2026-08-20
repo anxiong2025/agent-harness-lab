@@ -14,11 +14,16 @@ export class ToolRegistry {
     return () => this.definitions.delete(definition.name)
   }
 
-  schemas(): ToolSchema[] {
-    return [...this.definitions.values()].map(({ execute: _execute, ...schema }) => schema)
+  schemas(allowedNames?: ReadonlySet<string>): ToolSchema[] {
+    return [...this.definitions.values()]
+      .filter((definition) => allowedNames === undefined || allowedNames.has(definition.name))
+      .map(({ execute: _execute, ...schema }) => schema)
   }
 
-  async execute(name: string, arguments_: JsonObject): Promise<string> {
+  async execute(name: string, arguments_: JsonObject, allowedNames?: ReadonlySet<string>): Promise<string> {
+    if (allowedNames !== undefined && !allowedNames.has(name)) {
+      throw new Error(`tool ${name} is not allowed for this agent scope`)
+    }
     const definition = this.definitions.get(name)
     if (!definition) throw new Error(`tool not found: ${name}`)
     return definition.execute(arguments_)
