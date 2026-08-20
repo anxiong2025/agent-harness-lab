@@ -1,0 +1,8 @@
+{
+  "name": "@agent-harness/scope",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/agent-scope.ts"
+  }
+}

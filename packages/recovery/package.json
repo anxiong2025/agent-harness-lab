@@ -1,0 +1,11 @@
+{
+  "name": "@agent-harness/recovery",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@agent-harness/core": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/pending-requests.ts"
+  }
+}

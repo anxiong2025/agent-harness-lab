@@ -11,7 +11,11 @@
     "paths": {
       "@agent-harness/core": ["packages/core/src/contracts.ts"],
       "@agent-harness/session": ["packages/session/src/session-log.ts"],
-      "@agent-harness/llm": ["packages/llm/src/deepseek.ts"]
+      "@agent-harness/llm": ["packages/llm/src/deepseek.ts"],
+      "@agent-harness/capabilities": ["packages/capabilities/src/local-clock.ts"],
+      "@agent-harness/recovery": ["packages/recovery/src/pending-requests.ts"],
+      "@agent-harness/scope": ["packages/scope/src/agent-scope.ts"],
+      "@agent-harness/subagent": ["packages/subagent/src/handoff.ts"]
     },
     "noEmit": true
   },

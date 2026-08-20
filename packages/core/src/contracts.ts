@@ -37,6 +37,9 @@ export type SessionEvent =
   | { kind: 'model_response'; response: ModelResponse }
   | { kind: 'tool_call'; requestId: string; callId: string; tool: ToolCall }
   | { kind: 'tool_result'; requestId: string; callId: string; content: string }
+  | { kind: 'agent_scope'; agentId: string; systemPrompt: string }
+  | { kind: 'subagent_started'; subagentId: string; agentId: string; task: string }
+  | { kind: 'subagent_completed'; subagentId: string; agentId: string; result: string }
 
 export function assertNever(value: never): never {
   throw new Error(`Unhandled value: ${String(value)}`)
