@@ -1,9 +1,7 @@
 import { Service, type Context } from '../../../../deepseek-harness/vendor/cordis/lib/index.js'
 
 import type { ModelMessage } from '../../12-token-meter/src/token-meter.ts'
-import type { ToolDefinition } from './tool-runtime.ts'
-
-export type ToolCall = { id: string; function: { name: string; arguments: string } }
+import type { ToolCall, ToolSchema } from './core/contracts.ts'
 
 export type ChatMessage =
   | ModelMessage
@@ -24,7 +22,7 @@ export class DeepSeekLlm extends Service {
     super(ctx, 'labLlm')
   }
 
-  async complete(messages: ChatMessage[], tools: Array<Omit<ToolDefinition, 'execute'>>): Promise<ModelReply> {
+  async complete(messages: ChatMessage[], tools: ToolSchema[]): Promise<ModelReply> {
     const apiKey = process.env.DEEPSEEK_API_KEY
     if (!apiKey) throw new Error('DEEPSEEK_API_KEY is required to run this demo')
     const response = await fetch(`${process.env.LOOPBASE_BASE_URL ?? 'https://api.deepseek.com'}/chat/completions`, {

@@ -1,11 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { Service, type Context } from '../../../../deepseek-harness/vendor/cordis/lib/index.js'
-
-export type SessionEvent = {
-  kind: string
-  [key: string]: unknown
-}
+import type { SessionEvent } from './core/contracts.ts'
 
 declare module '../../../../deepseek-harness/vendor/cordis/lib/index.js' {
   interface Context {

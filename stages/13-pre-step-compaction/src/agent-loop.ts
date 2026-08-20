@@ -5,6 +5,7 @@ import type {} from './events.ts'
 import type { AgentPreStep } from './events.ts'
 import type { ContextBlock, TokenBudget } from '../../12-token-meter/src/token-meter.ts'
 import type { ChatMessage } from './llm-provider.ts'
+import type { JsonObject } from './core/contracts.ts'
 
 declare module '../../../../deepseek-harness/vendor/cordis/lib/index.js' {
   interface Context {
@@ -57,7 +58,7 @@ export class AgentLoop extends Service {
       messages.push({ role: 'assistant', content: firstReply.content, tool_calls: firstReply.toolCalls })
       for (const call of firstReply.toolCalls) {
         console.log(`[model tool_call] ${call.function.name}(${call.function.arguments})`)
-        const arguments_ = JSON.parse(call.function.arguments) as Record<string, never>
+        const arguments_ = JSON.parse(call.function.arguments) as JsonObject
         this.ctx.labSession.append({
           kind: 'tool_call',
           request_id: requestId,

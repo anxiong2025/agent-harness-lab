@@ -1,10 +1,9 @@
 import { Service, type Context } from '../../../../deepseek-harness/vendor/cordis/lib/index.js'
+import type { JsonObject, ToolSchema } from './core/contracts.ts'
 
-export type ToolDefinition = {
-  name: string
-  description: string
+export type ToolDefinition = ToolSchema & {
   parameters: Record<string, never>
-  execute(arguments_: Record<string, never>): Promise<string>
+  execute(arguments_: JsonObject): Promise<string>
 }
 
 declare module '../../../../deepseek-harness/vendor/cordis/lib/index.js' {
@@ -27,11 +26,11 @@ export class ToolRuntime extends Service {
     return () => this.definitions.delete(definition.name)
   }
 
-  schemas(): Array<Omit<ToolDefinition, 'execute'>> {
+  schemas(): ToolSchema[] {
     return [...this.definitions.values()].map(({ execute: _execute, ...schema }) => schema)
   }
 
-  async execute(name: string, arguments_: Record<string, never>): Promise<string> {
+  async execute(name: string, arguments_: JsonObject): Promise<string> {
     const definition = this.definitions.get(name)
     if (!definition) throw new Error(`tool not found: ${name}`)
     return definition.execute(arguments_)
