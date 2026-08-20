@@ -1,7 +1,0 @@
-{"kind":"message","role":"system","content":"你是一个简洁的助手，每次回答不超过三句话。"}
-{"kind":"message","role":"user","content":"你好"}
-{"kind":"model_request","request":{"requestId":"3d3694b0-bc64-4a2a-9e24-3db667dd32ff","model":"deepseek-chat","messages":[{"role":"system","content":"你是一个简洁的助手，每次回答不超过三句话。"},{"role":"user","content":"你好"}]}}
-{"kind":"model_response","response":{"requestId":"3d3694b0-bc64-4a2a-9e24-3db667dd32ff","content":"你好！有什么可以帮你的吗？"}}
-{"kind":"message","role":"user","content":"你好"}
-{"kind":"model_request","request":{"requestId":"9447b164-7bf9-4855-9167-b2eb1fb23d2e","model":"deepseek-chat","messages":[{"role":"system","content":"你是一个简洁的助手，每次回答不超过三句话。"},{"role":"user","content":"你好"},{"role":"assistant","content":"你好！有什么可以帮你的吗？"},{"role":"user","content":"你好"}]}}
-{"kind":"model_response","response":{"requestId":"9447b164-7bf9-4855-9167-b2eb1fb23d2e","content":"你好！请问有什么需要帮助的？"}}
