@@ -1,7 +1,7 @@
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 
-import type { ModelMessage, ModelRequest, SessionEvent } from '@agent-harness/core'
+import type { ModelChatMessage, ModelMessage, ModelRequest, SessionEvent } from '@agent-harness/core'
 
 /** Durable append-only event store used to reconstruct a session surface. */
 export class SessionLog {
@@ -21,11 +21,19 @@ export class SessionLog {
       .map((line) => JSON.parse(line) as SessionEvent)
   }
 
-  deriveMessages(events = this.read()): ModelMessage[] {
+  deriveMessages(events = this.read()): ModelChatMessage[] {
     return events.flatMap((event) => {
       if (event.kind === 'message') return [{ role: event.role, content: event.content }]
-      if (event.kind === 'model_response' && event.response.content !== null) {
-        return [{ role: 'assistant' as const, content: event.response.content }]
+      if (event.kind === 'model_response') {
+        const messages: ModelChatMessage[] = []
+        if (event.response.content !== null) messages.push({ role: 'assistant', content: event.response.content })
+        if (event.response.toolCalls.length > 0) {
+          messages.push({ role: 'assistant', content: event.response.content, toolCalls: event.response.toolCalls })
+        }
+        return messages
+      }
+      if (event.kind === 'tool_result') {
+        return [{ role: 'tool', toolCallId: event.callId, content: event.content }]
       }
       return []
     })

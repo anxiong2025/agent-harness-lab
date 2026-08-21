@@ -248,7 +248,7 @@ Provider 返回 context overflow
 ### 待实现
 
 ```text
-☐ tool_call/tool_result 成对压缩
+☑️ tool_call/tool_result 成对压缩
 ☐ Provider 超限重试
 ☐ Cache Key、TTL 和失效机制
 ☐ 精确 Token 计量
@@ -274,7 +274,7 @@ pnpm run check:types
 
 在调用摘要模型前先处理大结果，并重新测量 Token。
 
-### 第四步：完善压缩边界 ☐
+### 第四步：完善压缩边界 ☑️
 
 确保工具调用和工具结果成对保留，并按任务相关性选择历史范围。
 

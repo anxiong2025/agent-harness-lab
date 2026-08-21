@@ -1,4 +1,4 @@
-import type { ModelMessage } from '@agent-harness/core'
+import type { ModelChatMessage, ModelMessage } from '@agent-harness/core'
 
 export type ContextSummary = {
   content: string
@@ -6,7 +6,7 @@ export type ContextSummary = {
 }
 
 export type ContextSelection = {
-  messages: ModelMessage[]
+  messages: ModelChatMessage[]
   selectedTailCount: number
   compactThroughMessageCount: number | null
   usedCharacters: number
@@ -22,10 +22,10 @@ export class ContextBuilder {
 
   build(
     systemMessage: ModelMessage,
-    conversation: ModelMessage[],
+    conversation: ModelChatMessage[],
     summary: ContextSummary | null,
   ): ContextSelection {
-    const messages: ModelMessage[] = [systemMessage]
+    const messages: ModelChatMessage[] = [systemMessage]
     const coveredCount = summary?.coversMessageCount ?? 0
     if (summary) {
       messages.push({ role: 'system', content: `以下是较早对话的摘要：\n${summary.content}` })
@@ -33,7 +33,7 @@ export class ContextBuilder {
 
     let remaining = this.maxCharacters - messages.reduce((total, message) => total + messageCharacters(message), 0)
     const unsummarized = conversation.slice(coveredCount)
-    const selectedReversed: ModelMessage[] = []
+    const selectedReversed: ModelChatMessage[] = []
     for (const message of [...unsummarized].reverse()) {
       const size = messageCharacters(message)
       if (selectedReversed.length > 0 && size > remaining) break
@@ -43,7 +43,7 @@ export class ContextBuilder {
 
     const selectedTail = selectedReversed.reverse()
     const compactedNow = unsummarized.length - selectedTail.length
-    const result = [...messages, ...selectedTail]
+    const result = [...messages, ...preserveCompleteToolGroups(selectedTail)]
     return {
       messages: result,
       selectedTailCount: selectedTail.length,
@@ -58,7 +58,7 @@ export type ContextBlock = {
   source: string
   cacheStable: boolean
   compactable: boolean
-  messages: ModelMessage[]
+  messages: ModelChatMessage[]
 }
 
 /** Build named prompt blocks so stable prefixes remain independently observable. */
@@ -73,7 +73,7 @@ export class ContextBlockBuilder {
     systemMessage: ModelMessage,
     summary: string | null,
     currentTime: string,
-    conversation: ModelMessage[],
+    conversation: ModelChatMessage[],
   ): ContextBlock[] {
     const blocks: ContextBlock[] = [{
       name: 'system',
@@ -104,22 +104,52 @@ export class ContextBlockBuilder {
         source: 'event_log',
         cacheStable: false,
         compactable: true,
-        messages: conversation.slice(-this.recentHistoryLimit),
+        messages: selectRecentHistory(conversation, this.recentHistoryLimit),
       },
     )
     return blocks
   }
 
   /** Flatten named blocks into the ordered model-visible message list. */
-  flatten(blocks: ContextBlock[]): ModelMessage[] {
+  flatten(blocks: ContextBlock[]): ModelChatMessage[] {
     return flattenBlocks(blocks)
   }
 }
 
-export function flattenBlocks(blocks: ContextBlock[]): ModelMessage[] {
+export function flattenBlocks(blocks: ContextBlock[]): ModelChatMessage[] {
   return blocks.flatMap((block) => block.messages)
 }
 
-function messageCharacters(message: ModelMessage): number {
-  return message.role.length + message.content.length
+function messageCharacters(message: ModelChatMessage): number {
+  return message.role.length + (message.content ?? '').length
+}
+
+function selectRecentHistory(messages: ModelChatMessage[], limit: number): ModelChatMessage[] {
+  if (limit === 0) return []
+  let start = Math.max(0, messages.length - limit)
+  while (start > 0 && messages[start]?.role === 'tool') start -= 1
+  return preserveCompleteToolGroups(messages.slice(start))
+}
+
+/** Remove incomplete tool-call groups from a model-visible message selection. */
+export function preserveCompleteToolGroups(messages: ModelChatMessage[]): ModelChatMessage[] {
+  const result = [...messages]
+  while (result[0]?.role === 'tool') result.shift()
+  for (const message of [...result]) {
+    if (message.role !== 'assistant' || !('toolCalls' in message)) continue
+    const callIds = new Set(message.toolCalls.map((call) => call.id))
+    const resultIds = new Set(
+      result
+        .filter((candidate): candidate is Extract<ModelChatMessage, { role: 'tool' }> => candidate.role === 'tool')
+        .map((candidate) => candidate.toolCallId),
+    )
+    if ([...callIds].every((callId) => resultIds.has(callId))) continue
+    const index = result.indexOf(message)
+    result.splice(index, 1)
+    for (let cursor = result.length - 1; cursor >= 0; cursor -= 1) {
+      const candidate = result[cursor]
+      if (candidate?.role === 'tool' && callIds.has(candidate.toolCallId)) result.splice(cursor, 1)
+    }
+  }
+  return result
 }

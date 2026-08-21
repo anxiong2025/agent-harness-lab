@@ -1,5 +1,5 @@
-import type { ContextBlock } from '@agent-harness/context'
-import type { ModelMessage } from '@agent-harness/core'
+import { preserveCompleteToolGroups, type ContextBlock } from '@agent-harness/context'
+import type { ModelChatMessage } from '@agent-harness/core'
 
 export type TokenBudget = {
   contextWindowTokens: number
@@ -22,7 +22,7 @@ export class TokenMeter {
     const measurements = blocks.map((block) => ({
       name: block.name,
       estimatedTokens: block.messages.reduce(
-        (total, message) => total + Math.ceil((message.role.length + message.content.length) / 4),
+        (total, message) => total + Math.ceil((message.role.length + (message.content ?? '').length) / 4),
         0,
       ),
     }))
@@ -85,7 +85,7 @@ export type StructuredSummary = {
 }
 
 /** Build a conservative summary without inventing facts that are absent from history. */
-export function createStructuredSummary(messages: ModelMessage[]): StructuredSummary {
+export function createStructuredSummary(messages: ModelChatMessage[]): StructuredSummary {
   const userMessages = messages.filter((message) => message.role === 'user')
   const assistantMessages = messages.filter((message) => message.role === 'assistant')
   const latestUser = userMessages.at(-1)
@@ -115,13 +115,19 @@ export class BasicCompactionProvider implements CompactionProvider {
   async compact(blocks: ContextBlock[], plan: CompactionPlan): Promise<ContextBlock[]> {
     if (plan.candidateBlocks.length === 0) throw new Error('context pressure has no compactable block')
     const recentMessages = blocks.find((block) => block.name === 'recent_history')?.messages ?? []
-    const latestUser = [...recentMessages].reverse().find((message) => message.role === 'user')
+    let latestUserIndex = -1
+    recentMessages.forEach((message, index) => {
+      if (message.role === 'user') latestUserIndex = index
+    })
+    const retainedMessages = latestUserIndex >= 0
+      ? preserveCompleteToolGroups(recentMessages.slice(latestUserIndex))
+      : []
     const summaryContent = formatStructuredSummary(createStructuredSummary(recentMessages))
     const hasSummary = blocks.some((block) => block.name === 'summary')
     const compacted = blocks.flatMap((block) => {
       if (block.name === 'summary') return [{ ...block, messages: [{ role: 'system' as const, content: summaryContent }] }]
       if (block.name === 'recent_history') {
-        return latestUser ? [{ ...block, messages: [latestUser] }] : []
+        return retainedMessages.length > 0 ? [{ ...block, messages: retainedMessages }] : []
       }
       return [block]
     })

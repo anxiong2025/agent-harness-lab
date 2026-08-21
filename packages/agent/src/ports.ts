@@ -14,7 +14,7 @@ import type { AgentScope } from '@agent-harness/scope'
 /** Minimum session surface required by the agent loop. */
 export interface SessionPort {
   append(event: SessionEvent): void
-  deriveMessages(): ModelMessage[]
+  deriveMessages(): ModelChatMessage[]
   latestContextSummary(): { content: string; coversMessageCount: number } | null
 }
 
@@ -50,7 +50,7 @@ export interface ContextPort {
     systemMessage: ModelMessage,
     summary: string | null,
     currentTime: string,
-    conversation: ModelMessage[],
+    conversation: ModelChatMessage[],
   ): ContextBlock[]
   flatten(blocks: ContextBlock[]): ModelChatMessage[]
 }
