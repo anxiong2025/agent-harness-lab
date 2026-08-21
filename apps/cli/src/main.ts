@@ -1,5 +1,6 @@
 import { createInterface } from 'node:readline/promises'
 import { stdin as input, stdout as output } from 'node:process'
+import { fileURLToPath } from 'node:url'
 import { config } from 'dotenv'
 
 import { DefaultAgentLoop } from '@agent-harness/agent'
@@ -30,7 +31,8 @@ const tools = new ToolRegistry()
 const toolResults = new ToolResultLimiter(4000)
 tools.register(createLocalTimeTool(clock))
 tools.register(createHongKongWeatherTool())
-tools.register(createReadFileTool())
+const workspaceRoot = fileURLToPath(new URL('../../../', import.meta.url))
+tools.register(createReadFileTool(workspaceRoot))
 const scopes = new ScopeRegistry()
 registerCliAgentScopes(scopes)
 const agents = new AgentRegistry()
@@ -46,6 +48,7 @@ const dependencies: AgentLoopDependencies = {
   budget: new BudgetPolicy(new TokenMeter(), new CompactionEngine()),
   compaction: new BasicCompactionProvider(),
   model: process.env.LOOPBASE_MODEL ?? 'deepseek-chat',
+  maxToolRounds: 4,
 }
 agents.register({
   agentId: 'concise',

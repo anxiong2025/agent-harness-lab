@@ -9,7 +9,7 @@ export class DefaultAgentLoop implements AgentDriver {
   constructor(private readonly dependencies: AgentLoopDependencies) {}
 
   async run({ prompt, budget: tokenBudget, agentId }: AgentRunInput): Promise<string> {
-    const { session, scopes, clock, context, budget, compaction, tools, toolResults, llm, model } = this.dependencies
+    const { session, scopes, clock, context, budget, compaction, tools, toolResults, llm, model, maxToolRounds } = this.dependencies
     const scope = scopes.resolve(agentId)
     session.append({ kind: 'agent_scope', agentId: scope.agentId, systemPrompt: scope.systemPrompt })
     session.append({ kind: 'message', role: 'user', content: prompt })
@@ -30,33 +30,37 @@ export class DefaultAgentLoop implements AgentDriver {
       }
     }
     const messages = context.flatten(finalBlocks)
-    const request: ModelRequest = {
+    let request: ModelRequest = {
       requestId: randomUUID(),
       model,
       messages,
       tools: tools.schemas(scope.capabilities),
     }
-    session.append({ kind: 'model_request', request })
-    const response = await llm.complete(request)
-    session.append({ kind: 'model_response', response })
-    if (response.toolCalls.length === 0) return response.content ?? ''
+    for (let round = 0; round < maxToolRounds; round += 1) {
+      session.append({ kind: 'model_request', request })
+      const response = await llm.complete(request)
+      session.append({ kind: 'model_response', response })
+      if (response.toolCalls.length === 0) return response.content ?? ''
 
-    const toolMessages: ModelChatMessage[] = [...messages, {
-      role: 'assistant' as const,
-      content: response.content ?? '',
-      toolCalls: response.toolCalls,
-    }]
-    for (const call of response.toolCalls) {
-      session.append({ kind: 'tool_call', requestId: request.requestId, callId: call.id, tool: call })
-      const fullContent = await tools.execute(call.name, call.arguments, scope.capabilities)
-      session.append({ kind: 'tool_result', requestId: request.requestId, callId: call.id, content: fullContent })
-      toolMessages.push({ role: 'tool', toolCallId: call.id, content: toolResults.limit(fullContent) })
+      const toolMessages: ModelChatMessage[] = [...request.messages, {
+        role: 'assistant' as const,
+        content: response.content ?? '',
+        toolCalls: response.toolCalls,
+      }]
+      for (const call of response.toolCalls) {
+        session.append({ kind: 'tool_call', requestId: request.requestId, callId: call.id, tool: call })
+        let fullContent: string
+        try {
+          fullContent = await tools.execute(call.name, call.arguments, scope.capabilities)
+        } catch (error) {
+          fullContent = `[tool_error] ${error instanceof Error ? error.message : String(error)}`
+        }
+        session.append({ kind: 'tool_result', requestId: request.requestId, callId: call.id, content: fullContent })
+        toolMessages.push({ role: 'tool', toolCallId: call.id, content: toolResults.limit(fullContent) })
+      }
+      request = { ...request, requestId: randomUUID(), messages: toolMessages }
     }
-    const followup: ModelRequest = { ...request, requestId: randomUUID(), messages: toolMessages }
-    session.append({ kind: 'model_request', request: followup })
-    const finalResponse = await llm.complete(followup)
-    session.append({ kind: 'model_response', response: finalResponse })
-    return finalResponse.content ?? ''
+    throw new Error(`tool loop exceeded maximum rounds: ${maxToolRounds}`)
   }
 }
 

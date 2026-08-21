@@ -1,4 +1,4 @@
-import { readFile, realpath } from 'node:fs/promises'
+import { readFile, realpath, stat } from 'node:fs/promises'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import type { JsonObject } from '@agent-harness/core'
 
@@ -34,6 +34,7 @@ export class WorkspaceFileReader {
     const relativeTarget = relative(root, target)
     const outsideRoot = relativeTarget === '..' || relativeTarget.startsWith(`..${sep}`) || isAbsolute(relativeTarget)
     if (outsideRoot) throw new Error('read_file path must stay inside the workspace root')
+    if (!(await stat(target)).isFile()) throw new Error('read_file path must identify a regular file')
 
     const content = await readFile(target, 'utf8')
     return content.length > maxChars

@@ -26,7 +26,7 @@ export class SessionLog {
       if (event.kind === 'message') return [{ role: event.role, content: event.content }]
       if (event.kind === 'model_response') {
         const messages: ModelChatMessage[] = []
-        if (event.response.content !== null) messages.push({ role: 'assistant', content: event.response.content })
+        if (event.response.content) messages.push({ role: 'assistant', content: event.response.content })
         if (event.response.toolCalls.length > 0) {
           messages.push({ role: 'assistant', content: event.response.content, toolCalls: event.response.toolCalls })
         }

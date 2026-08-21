@@ -77,4 +77,5 @@ export type AgentLoopDependencies = {
   budget: BudgetPort
   compaction: CompactionPort
   model: string
+  maxToolRounds: number
 }
