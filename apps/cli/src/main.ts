@@ -12,6 +12,7 @@ import { DeepSeekProvider, defaultMessages } from '@agent-harness/llm'
 import { SessionLog } from '@agent-harness/session'
 import { ScopeRegistry } from '@agent-harness/scope'
 import { ToolRegistry } from '@agent-harness/tools'
+import { ToolResultLimiter } from '@agent-harness/tools/result-policy'
 import { registerCliAgentScopes } from './agents.js'
 
 config({ path: new URL('../../../.env', import.meta.url) })
@@ -26,6 +27,7 @@ if (log.read().length === 0) {
 const provider = new DeepSeekProvider()
 const clock = new LocalClock()
 const tools = new ToolRegistry()
+const toolResults = new ToolResultLimiter(4000)
 tools.register(createLocalTimeTool(clock))
 tools.register(createHongKongWeatherTool())
 tools.register(createReadFileTool())
@@ -37,6 +39,7 @@ const dependencies: AgentLoopDependencies = {
   session: log,
   llm: provider,
   tools,
+  toolResults,
   scopes,
   clock,
   context: contextBlocks,

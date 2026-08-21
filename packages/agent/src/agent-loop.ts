@@ -9,7 +9,7 @@ export class DefaultAgentLoop implements AgentDriver {
   constructor(private readonly dependencies: AgentLoopDependencies) {}
 
   async run({ prompt, budget: tokenBudget, agentId }: AgentRunInput): Promise<string> {
-    const { session, scopes, clock, context, budget, compaction, tools, llm, model } = this.dependencies
+    const { session, scopes, clock, context, budget, compaction, tools, toolResults, llm, model } = this.dependencies
     const scope = scopes.resolve(agentId)
     session.append({ kind: 'agent_scope', agentId: scope.agentId, systemPrompt: scope.systemPrompt })
     session.append({ kind: 'message', role: 'user', content: prompt })
@@ -48,9 +48,9 @@ export class DefaultAgentLoop implements AgentDriver {
     }]
     for (const call of response.toolCalls) {
       session.append({ kind: 'tool_call', requestId: request.requestId, callId: call.id, tool: call })
-      const content = await tools.execute(call.name, call.arguments, scope.capabilities)
-      session.append({ kind: 'tool_result', requestId: request.requestId, callId: call.id, content })
-      toolMessages.push({ role: 'tool', toolCallId: call.id, content })
+      const fullContent = await tools.execute(call.name, call.arguments, scope.capabilities)
+      session.append({ kind: 'tool_result', requestId: request.requestId, callId: call.id, content: fullContent })
+      toolMessages.push({ role: 'tool', toolCallId: call.id, content: toolResults.limit(fullContent) })
     }
     const followup: ModelRequest = { ...request, requestId: randomUUID(), messages: toolMessages }
     session.append({ kind: 'model_request', request: followup })

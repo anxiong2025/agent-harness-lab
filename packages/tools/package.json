@@ -6,6 +6,7 @@
     "@agent-harness/core": "workspace:*"
   },
   "exports": {
-    ".": "./src/registry.ts"
+    ".": "./src/registry.ts",
+    "./result-policy": "./src/result-policy.ts"
   }
 }

@@ -29,6 +29,11 @@ export interface ToolPort {
   execute(name: string, arguments_: ToolCall['arguments'], allowedNames: ReadonlySet<string>): Promise<string>
 }
 
+/** Converts full tool output into bounded model-visible content. */
+export interface ToolResultPort {
+  limit(content: string): string
+}
+
 /** Agent-scope resolver used to select prompts and capabilities. */
 export interface ScopePort {
   resolve(agentId: string): AgentScope
@@ -65,6 +70,7 @@ export type AgentLoopDependencies = {
   session: SessionPort
   llm: LlmPort
   tools: ToolPort
+  toolResults: ToolResultPort
   scopes: ScopePort
   clock: ClockPort
   context: ContextPort

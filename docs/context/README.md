@@ -230,33 +230,35 @@ Provider 返回 context overflow
 
 ## 四、当前实现状态
 
-已经有：
+### 已完成
 
 ```text
-ContextBlockBuilder
-TokenMeter
-BudgetPolicy
-CompactionEngine
-BasicCompactionProvider
-context_summary 事件
-摘要读取和恢复入口
+☑️ ContextBlockBuilder
+☑️ TokenMeter
+☑️ BudgetPolicy
+☑️ CompactionEngine
+☑️ BasicCompactionProvider
+☑️ 结构化摘要字段
+☑️ context_summary 事件
+☑️ 摘要读取和恢复入口
+☑️ 工具结果头尾裁剪
+☑️ 完整工具结果落盘、裁剪结果发送给模型
 ```
 
-还需要完成：
+### 待实现
 
 ```text
-真实的结构化摘要
-工具结果裁剪
-tool_call/tool_result 成对压缩
-Provider 超限重试
-Cache Key、TTL 和失效机制
-精确 Token 计量
-压缩后任务继续执行的测试
+☐ tool_call/tool_result 成对压缩
+☐ Provider 超限重试
+☐ Cache Key、TTL 和失效机制
+☐ 精确 Token 计量
+☐ 压缩后任务继续执行的测试
+☐ LLM 结构化摘要 Provider
 ```
 
 ## 五、明天按这个顺序实现
 
-### 第一步：确认当前基线
+### 第一步：确认当前基线 ☑️
 
 ```bash
 pnpm run check:types
@@ -264,27 +266,27 @@ pnpm run check:types
 
 然后运行 CLI，确认 `coding`、`read_file` 和事件日志正常。
 
-### 第二步：实现结构化摘要
+### 第二步：实现结构化摘要 ☑️（确定性版本）
 
 先用确定性代码生成摘要结构，确认事件格式和恢复链路；之后再替换为 LLM 摘要 Provider。
 
-### 第三步：实现工具结果裁剪
+### 第三步：实现工具结果裁剪 ☑️
 
 在调用摘要模型前先处理大结果，并重新测量 Token。
 
-### 第四步：完善压缩边界
+### 第四步：完善压缩边界 ☐
 
 确保工具调用和工具结果成对保留，并按任务相关性选择历史范围。
 
-### 第五步：实现 Provider 超限重试
+### 第五步：实现 Provider 超限重试 ☐
 
 捕获上下文溢出错误，压缩后重试一次，超过上限则安全失败。
 
-### 第六步：实现基础缓存
+### 第六步：实现基础缓存 ☐
 
 先实现可观察的 Cache Key、TTL 和版本失效，不一开始引入复杂分布式缓存。
 
-### 第七步：补测试和演示
+### 第七步：补测试和演示 ☐
 
 验证：
 
