@@ -15,12 +15,20 @@ export class DefaultAgentLoop implements AgentDriver {
     session.append({ kind: 'message', role: 'user', content: prompt })
 
     const history = session.deriveMessages()
+    const summary = session.latestContextSummary()
     const systemMessage = { role: 'system' as const, content: scope.systemPrompt }
-    const blockList = context.build(systemMessage, null, clock.currentTime(), history)
+    const blockList = context.build(systemMessage, summary?.content ?? null, clock.currentTime(), history)
     const decision = budget.decide(blockList, tokenBudget)
     const finalBlocks = decision.kind === 'compact'
       ? await compaction.compact(blockList, decision.plan)
       : blockList
+    if (decision.kind === 'compact') {
+      const summaryBlock = finalBlocks.find((block) => block.name === 'summary')
+      const summaryContent = summaryBlock?.messages[0]?.content
+      if (summaryContent) {
+        session.append({ kind: 'context_summary', content: summaryContent, coversMessageCount: history.length })
+      }
+    }
     const messages = context.flatten(finalBlocks)
     const request: ModelRequest = {
       requestId: randomUUID(),

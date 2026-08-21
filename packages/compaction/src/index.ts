@@ -1,4 +1,5 @@
 import type { ContextBlock } from '@agent-harness/context'
+import type { ModelMessage } from '@agent-harness/core'
 
 export type TokenBudget = {
   contextWindowTokens: number
@@ -74,18 +75,65 @@ export interface CompactionProvider {
   compact(blocks: ContextBlock[], plan: CompactionPlan): Promise<ContextBlock[]>
 }
 
+/** Structured state extracted by the deterministic compaction provider. */
+export type StructuredSummary = {
+  taskGoal: string
+  constraints: string[]
+  completed: string[]
+  openItems: string[]
+  nextAction: string
+}
+
+/** Build a conservative summary without inventing facts that are absent from history. */
+export function createStructuredSummary(messages: ModelMessage[]): StructuredSummary {
+  const userMessages = messages.filter((message) => message.role === 'user')
+  const assistantMessages = messages.filter((message) => message.role === 'assistant')
+  const latestUser = userMessages.at(-1)
+  const latestAssistant = assistantMessages.at(-1)
+  return {
+    taskGoal: latestUser?.content ?? '当前任务未明确。',
+    constraints: ['保留用户原始目标；不要假设历史中没有出现的事实。'],
+    completed: latestAssistant ? [`最近一次助手输出：${latestAssistant.content}`] : ['暂无可确认的已完成工作。'],
+    openItems: ['需要根据当前任务继续确认未完成事项。'],
+    nextAction: '从最近的用户目标继续执行，并在产生新结果后更新摘要。',
+  }
+}
+
+/** Serialize structured state into a stable model-visible summary document. */
+export function formatStructuredSummary(summary: StructuredSummary): string {
+  return [
+    `任务目标：${summary.taskGoal}`,
+    `关键约束：${summary.constraints.join('；')}`,
+    `已完成工作：${summary.completed.join('；')}`,
+    `未完成事项：${summary.openItems.join('；')}`,
+    `下一步动作：${summary.nextAction}`,
+  ].join('\n')
+}
+
 /** Deterministic provider used until an LLM summarization provider is composed. */
 export class BasicCompactionProvider implements CompactionProvider {
   async compact(blocks: ContextBlock[], plan: CompactionPlan): Promise<ContextBlock[]> {
     if (plan.candidateBlocks.length === 0) throw new Error('context pressure has no compactable block')
     const recentMessages = blocks.find((block) => block.name === 'recent_history')?.messages ?? []
     const latestUser = [...recentMessages].reverse().find((message) => message.role === 'user')
-    return blocks.flatMap((block) => {
-      if (block.name === 'summary') return [{ ...block, messages: [{ role: 'system', content: '较早对话已压缩；请以最近消息为准。' }] }]
+    const summaryContent = formatStructuredSummary(createStructuredSummary(recentMessages))
+    const hasSummary = blocks.some((block) => block.name === 'summary')
+    const compacted = blocks.flatMap((block) => {
+      if (block.name === 'summary') return [{ ...block, messages: [{ role: 'system' as const, content: summaryContent }] }]
       if (block.name === 'recent_history') {
         return latestUser ? [{ ...block, messages: [latestUser] }] : []
       }
       return [block]
     })
+    if (hasSummary) return compacted
+    const runtimeIndex = compacted.findIndex((block) => block.name === 'runtime_time')
+    compacted.splice(runtimeIndex < 0 ? 1 : runtimeIndex, 0, {
+      name: 'summary',
+      source: 'context_summary',
+      cacheStable: true,
+      compactable: true,
+      messages: [{ role: 'system' as const, content: summaryContent }],
+    })
+    return compacted
   }
 }

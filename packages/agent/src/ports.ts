@@ -15,6 +15,7 @@ import type { AgentScope } from '@agent-harness/scope'
 export interface SessionPort {
   append(event: SessionEvent): void
   deriveMessages(): ModelMessage[]
+  latestContextSummary(): { content: string; coversMessageCount: number } | null
 }
 
 /** Model capability used by the loop; providers translate this request themselves. */

@@ -42,6 +42,7 @@ export type SessionEvent =
   | { kind: 'message'; role: 'system' | 'user' | 'assistant'; content: string }
   | { kind: 'model_request'; request: ModelRequest }
   | { kind: 'model_response'; response: ModelResponse }
+  | { kind: 'context_summary'; content: string; coversMessageCount: number }
   | { kind: 'tool_call'; requestId: string; callId: string; tool: ToolCall }
   | { kind: 'tool_result'; requestId: string; callId: string; content: string }
   | { kind: 'agent_scope'; agentId: string; systemPrompt: string }

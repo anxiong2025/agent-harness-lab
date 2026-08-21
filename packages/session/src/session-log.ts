@@ -31,6 +31,15 @@ export class SessionLog {
     })
   }
 
+  latestContextSummary(events = this.read()): { content: string; coversMessageCount: number } | null {
+    for (const event of [...events].reverse()) {
+      if (event.kind === 'context_summary') {
+        return { content: event.content, coversMessageCount: event.coversMessageCount }
+      }
+    }
+    return null
+  }
+
   pendingRequests(events = this.read()): ModelRequest[] {
     const requests = new Map<string, ModelRequest>()
     const responses = new Set<string>()
