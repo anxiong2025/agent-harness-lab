@@ -14,16 +14,24 @@ import { SessionLog } from '@agent-harness/session'
 import { ScopeRegistry } from '@agent-harness/scope'
 import { ToolRegistry } from '@agent-harness/tools'
 import { ToolResultLimiter } from '@agent-harness/tools/result-policy'
+import { findPendingToolCalls, repairPendingToolCalls } from '@agent-harness/recovery'
 import { registerCliAgentScopes } from './agents.js'
 
 config({ path: new URL('../../../.env', import.meta.url) })
 
 const log = new SessionLog(process.env.HARNESS_LAB_EVENT_LOG ?? 'data/session.events.jsonl')
-if (log.read().length === 0) {
+let existingEvents = log.read()
+if (existingEvents.length === 0) {
   const [systemMessage] = defaultMessages()
   if (!systemMessage) throw new Error('default system message is missing')
-  log.append({ kind: 'message', role: 'system', content: systemMessage.content })
+  const initialEvent = { kind: 'message' as const, role: 'system' as const, content: systemMessage.content }
+  log.append(initialEvent)
+  existingEvents = [initialEvent]
 }
+const repairedToolResults = repairPendingToolCalls(existingEvents)
+for (const result of repairedToolResults) log.append(result)
+existingEvents = [...existingEvents, ...repairedToolResults]
+const pendingToolCalls = findPendingToolCalls(existingEvents)
 
 const provider = new DeepSeekProvider()
 const clock = new LocalClock()
@@ -61,7 +69,13 @@ agents.register({
 let activeAgentId = 'concise'
 let agent = agents.create(activeAgentId)
 const terminal = createInterface({ input, output })
-console.log(`已读取 ${log.read().length} 条事件。当前 Agent：${activeAgentId}。输入 /agent coding 或 /agent concise 切换。`)
+console.log(`已读取 ${existingEvents.length} 条事件。当前 Agent：${activeAgentId}。输入 /agent coding 或 /agent concise 切换。`)
+if (repairedToolResults.length > 0) {
+  console.log(`已为 ${repairedToolResults.length} 个中断工具调用写入 unknown 结果，未自动重试。`)
+}
+if (pendingToolCalls.length > 0) {
+  console.log(`发现 ${pendingToolCalls.length} 个未完成工具调用：${pendingToolCalls.map((pending) => pending.tool.name).join(', ')}`)
+}
 
 while (true) {
   let content: string

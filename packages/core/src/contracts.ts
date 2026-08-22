@@ -44,7 +44,14 @@ export type SessionEvent =
   | { kind: 'model_response'; response: ModelResponse }
   | { kind: 'context_summary'; content: string; coversMessageCount: number }
   | { kind: 'tool_call'; requestId: string; callId: string; tool: ToolCall }
-  | { kind: 'tool_result'; requestId: string; callId: string; content: string }
+  | {
+      kind: 'tool_result'
+      requestId: string
+      callId: string
+      content: string
+      /** Marks a durable placeholder created after an interrupted execution. */
+      outcome?: 'unknown'
+    }
   | { kind: 'agent_scope'; agentId: string; systemPrompt: string }
   | { kind: 'subagent_started'; subagentId: string; agentId: string; task: string }
   | { kind: 'subagent_completed'; subagentId: string; agentId: string; result: string }

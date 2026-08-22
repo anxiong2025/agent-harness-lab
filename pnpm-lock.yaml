@@ -35,6 +35,9 @@ importers:
       '@agent-harness/llm':
         specifier: workspace:*
         version: link:../../packages/llm
+      '@agent-harness/recovery':
+        specifier: workspace:*
+        version: link:../../packages/recovery
       '@agent-harness/scope':
         specifier: workspace:*
         version: link:../../packages/scope

@@ -11,6 +11,7 @@
     "@agent-harness/compaction": "workspace:*",
     "@agent-harness/core": "workspace:*",
     "@agent-harness/llm": "workspace:*",
+    "@agent-harness/recovery": "workspace:*",
     "@agent-harness/session": "workspace:*",
     "@agent-harness/scope": "workspace:*",
     "@agent-harness/tools": "workspace:*",
